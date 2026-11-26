@@ -1,0 +1,31 @@
+{
+  "name": "handijit-kimlik-uretici",
+  "version": "4.0.0",
+  "private": true,
+  "description": "Generates the Han Dijit corporate identity assets from the design tokens of @handijitcom/ui/design.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "uret": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@handijitcom/ui": "1.1.1",
+    "@resvg/resvg-js": "2.6.2",
+    "fontkit": "3.0.0",
+    "jsqr": "1.4.0",
+    "jszip": "3.10.2",
+    "pdf-lib": "1.17.1",
+    "playwright": "1.65.0",
+    "qrcode": "1.5.4",
+    "subset-font": "2.9.0"
+  },
+  "devDependencies": {
+    "@types/fontkit": "2.0.9",
+    "@types/node": "26.6.11",
+    "@types/qrcode": "1.5.6",
+    "typescript": "7.0.2"
+  }
+}

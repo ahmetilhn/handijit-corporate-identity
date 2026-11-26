@@ -1,16 +1,41 @@
+/*
+ * Han Dijit brand tokens · corporate identity 4.0
+ *
+ * Generated, do not edit: run `npm run uret` in kaynak/uretici.
+ * Source of truth: @handijitcom/ui/design (themes.light, fonts). The website uses the same values under the
+ * same --hd-* names; the band tokens are identical in the light and the dark theme.
+ * Turquoise is not part of the brand. Gradients and opacity belong only inside band imagery.
+ */
 :root {
-  --hd-siyah: #000000;
-  --hd-beyaz: #FFFFFF;
+  --hd-primary:          #2661fa; /* cobalt: everyday action, link, logo tile */
+  --hd-primary-hover:    #053dea;
+  --hd-on-primary:       #ffffff;
+  --hd-accent:           #fb6041; /* coral: the dot and the one conversion button */
+  --hd-accent-hover:     #f99884;
+  --hd-on-accent:        #091122;
+  --hd-band-bg:          #091b64; /* band: navy ground */
+  --hd-band-deep:        #060f3e; /* band: deep strip, end of the gradient */
+  --hd-band-line:        #213b86; /* band: hairline, top of the supergraphic fill */
+  --hd-band-line-strong: #5b7cce; /* band: supergraphic outline, dot grid, eyebrow rules */
+  --hd-band-text:        #ffffff; /* band: headings and text */
+  --hd-band-text-2:      #bfd2f3; /* band: secondary text, eyebrow */
+  --hd-text:             #091122; /* white surfaces: ink */
+  --hd-text-2:           #515b6e;
+  --hd-text-3:           #677083;
+  --hd-bg-page:          #fafbfe; /* white surfaces: page */
+  --hd-bg-surface:       #ffffff; /* white surfaces: card, paper */
+  --hd-border:           #dee3ed;
 
-  --hd-font-baslik: 'Archivo', system-ui, sans-serif;
-  --hd-font-metin: 'Inter', system-ui, sans-serif;
-  --hd-font-teknik: 'IBM Plex Mono', ui-monospace, monospace;
+  --hd-font-display: Archivo, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --hd-font-body: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --hd-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
+  --hd-tile-radius: 27.64%;   /* logo tile and app icon corner */
   --hd-tracking-logo: 0.13em;
-  --hd-tracking-etiket: 0.12em;
-  --hd-imlec-noktasi: 0.13em;
+  --hd-tracking-eyebrow: 0.153em;
+  --hd-tracking-heading: -0.03em;
   --hd-phi: 1.618034;
-}
 
-[data-tema="acik"] { --hd-zemin: var(--hd-beyaz); --hd-metin: var(--hd-siyah); }
-[data-tema="koyu"] { --hd-zemin: var(--hd-siyah); --hd-metin: var(--hd-beyaz); }
+  /* Band ground: navy into the deep strip */
+  --hd-band-gradient: linear-gradient(180deg, var(--hd-band-bg) 0%, var(--hd-band-bg) 55%, var(--hd-band-deep) 100%);
+}
