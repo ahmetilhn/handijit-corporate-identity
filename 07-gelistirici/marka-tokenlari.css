@@ -1,0 +1,16 @@
+:root {
+  --hd-siyah: #000000;
+  --hd-beyaz: #FFFFFF;
+
+  --hd-font-baslik: 'Archivo', system-ui, sans-serif;
+  --hd-font-metin: 'Inter', system-ui, sans-serif;
+  --hd-font-teknik: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --hd-tracking-logo: 0.13em;
+  --hd-tracking-etiket: 0.12em;
+  --hd-imlec-noktasi: 0.13em;
+  --hd-phi: 1.618034;
+}
+
+[data-tema="acik"] { --hd-zemin: var(--hd-beyaz); --hd-metin: var(--hd-siyah); }
+[data-tema="koyu"] { --hd-zemin: var(--hd-siyah); --hd-metin: var(--hd-beyaz); }

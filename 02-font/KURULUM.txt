@@ -1,0 +1,11 @@
+Han Dijit kurumsal fontları
+
+Archivo Medium / SemiBold  : başlık ve logotype
+Inter Regular / Medium / SemiBold : metin
+IBM Plex Mono Regular / Medium : etiket, telefon, teknik bilgi
+
+Windows: .ttf dosyalarını seçin, sağ tık > Tüm kullanıcılar için yükle.
+macOS: .ttf dosyalarına çift tıklayın > Yükle (Font Defteri).
+
+Word şablonu fontları kendi içinde taşır; PowerPoint şablonu için fontların yüklü olması gerekir.
+Üç font ailesi de SIL Open Font License 1.1 ile ücretsizdir (OFL-*.txt).
