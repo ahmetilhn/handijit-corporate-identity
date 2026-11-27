@@ -5,7 +5,8 @@ import jsQRModule from 'jsqr';
 import QRCode from 'qrcode';
 import { Resvg } from '@resvg/resvg-js';
 
-import { bandBackdrop, horizontalLogo, lockup, mark, ratio } from '../brand.ts';
+import { cobaltBackdrop, horizontalLogo, lockup, mark, ratio } from '../brand.ts';
+import { checkLegibility } from '../check.ts';
 import { brand, dir } from '../config.ts';
 import { fontPaths } from '../fonts.ts';
 import { assemblePdf, pdfPages, write } from '../render.ts';
@@ -13,7 +14,7 @@ import { round, svgDocument, text } from '../svg.ts';
 import { color } from '../tokens.ts';
 
 // Print files of 04-basili. The card front and the letterhead stay white and black, only the mark's dot turns
-// coral; the card back and the sticker are band surfaces. Sizes are in mm; the SVG sources keep live text (fonts
+// coral; the card back and the sticker are cobalt surfaces. Sizes are in mm; the SVG sources keep live text (fonts
 // embedded as subsets) so names and numbers can be edited, the PDFs are printed from them by Chromium.
 //
 // The PDFs are RGB: the printer converts them to CMYK with their own profile and sends a proof (see the guide).
@@ -98,26 +99,26 @@ async function cardFront(): Promise<string> {
   return svg;
 }
 
-/** Card back on the band: glow, dot grid, the tile lockup and the supergraphic rising from the bottom edge. */
+/** Card back on the cobalt surface: glow, dot grid, the tile lockup and the supergraphic rising from the bottom edge. */
 async function cardBack(): Promise<string> {
   const W = CARD.width + CARD.bleed * 2;
   const H = CARD.height + CARD.bleed * 2;
   const sgHeight = 40;
-  const back = bandBackdrop({
+  const back = cobaltBackdrop({
     width: CARD.width,
     height: CARD.height,
     bleed: CARD.bleed,
-    glows: [{ cx: 8, cy: 4, r: 46 }, { cx: 84, cy: 16, r: 34 }],
-    dots: { pitch: 1.6, radius: 0.12, fade: 'left' },
+    glows: [{ cx: 92, cy: 0, r: 40 }],
+    dots: { pitch: 1.6, radius: 0.12, fade: 'top', area: { x: -CARD.bleed, y: -CARD.bleed, width: CARD.width + CARD.bleed * 2, height: 32 } },
     supergraphic: { x: CARD.width - sgHeight * ratio.mark - 7, y: 15, height: sgHeight, stroke: 0.35 },
   });
   const tileSize = 10;
   const content = [
     back.body,
-    lockup(7, 7, tileSize, 'band'),
-    text({ x: 7, y: 44, text: brand.web, font: 'IBM Plex Mono/500', size: 2.15, fill: color.bandText2, tracking: 0.02 }),
+    lockup(7, 7, tileSize, 'cobalt'),
+    text({ x: 7, y: 44, text: brand.web, font: 'IBM Plex Mono/500', size: 2.15, fill: color.onSurface2, tracking: 0.02 }),
   ].join('');
-  return svgDocument({ width: W, height: H, unit: 'mm', title: 'Kartvizit arka · bant · 90 × 50 mm + 3 mm taşma', defs: back.defs, body: onCard(content) });
+  return svgDocument({ width: W, height: H, unit: 'mm', title: 'Kartvizit arka · kobalt · 90 × 50 mm + 3 mm taşma', defs: back.defs, body: onCard(content) });
 }
 
 // ---- Letterhead ----------------------------------------------------------------------------------------------
@@ -162,13 +163,13 @@ async function letterheadNext(): Promise<string> {
 
 // ---- Sticker -------------------------------------------------------------------------------------------------
 
-/** 60 × 60 mm die-cut sticker: band ground to the bleed edge, white mark with the coral dot. */
+/** 60 × 60 mm die-cut sticker: cobalt ground to the bleed edge, white mark with the coral dot. */
 async function sticker(): Promise<string> {
   const S = STICKER.size;
   const b = STICKER.bleed;
-  const back = bandBackdrop({ width: S, height: S, bleed: b, glows: [{ cx: S * 0.28, cy: S * 0.18, r: S * 0.8 }] });
+  const back = cobaltBackdrop({ width: S, height: S, bleed: b, glows: [{ cx: S * 0.28, cy: S * 0.18, r: S * 0.8 }] });
   const h = S * 0.5723;
-  const content = `${back.body}${mark((S - h * ratio.mark) / 2, (S - h) / 2, h, { body: color.bandText, dot: color.accent })}`;
+  const content = `${back.body}${mark((S - h * ratio.mark) / 2, (S - h) / 2, h, { body: color.onSurface, dot: color.accent })}`;
   return svgDocument({ width: S + b * 2, height: S + b * 2, unit: 'mm', title: 'Sticker · 60 × 60 mm + 2 mm taşma', defs: back.defs, body: `<g transform="translate(${b} ${b})">${content}</g>` });
 }
 
@@ -193,6 +194,8 @@ export async function buildPrint(): Promise<PrintPreviews> {
   const ch = CARD.height + CARD.bleed * 2;
   const front = await cardFront();
   const back = await cardBack();
+  const card = checkLegibility('kartvizit-arka', back, cw, 1200);
+  console.info(`  kartvizit-arka: lowest small-text contrast ${card.worst.toFixed(2)}:1 (${card.text})`);
   write(path.join(source, 'kartvizit-on.svg'), front);
   write(path.join(source, 'kartvizit-arka.svg'), back);
   write(
@@ -218,7 +221,7 @@ export async function buildPrint(): Promise<PrintPreviews> {
     await assemblePdf(await pdfPages([{ svg: art, width: ss, height: ss }, { svg: cut, width: ss, height: ss }]), { title: 'Han Dijit sticker 60 × 60 mm', trimInset: STICKER.bleed }),
   );
 
-  // The band back replaces the white and the black back of guide 3.0.
+  // The cobalt back replaces the white and the black back of guide 3.0.
   for (const old of ['kaynak/kartvizit-arka-beyaz.svg', 'kaynak/kartvizit-arka-siyah.svg', 'kartvizit-siyah-arka-90x50-baski.pdf']) {
     rmSync(path.join(dir.print, old), { force: true });
   }

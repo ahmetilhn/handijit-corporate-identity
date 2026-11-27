@@ -1,9 +1,9 @@
 import { baselineInBox, measure, wrap, type FontKey } from './fonts.ts';
 import { arrowUpRight, simpleMark, verticalLogo, wordmark } from './geometry.ts';
 import { round, text } from './svg.ts';
-import { color, logos } from './tokens.ts';
+import { color, logos, tint } from './tokens.ts';
 
-// Building blocks of the brand band, measured on the website's share image (src/libs/og-image.tsx in
+// Building blocks of the cobalt surface, measured on the website's share image (src/libs/og-image.tsx in
 // handijit-frontend). Every size is a ratio of one base length, so the same piece scales from a 400 px profile
 // image to a 1920 px meeting background or a 90 mm business card.
 
@@ -61,7 +61,7 @@ export function verticalLogoAt(x: number, y: number, height: number, paint: Pain
 export function tile(x: number, y: number, size: number, fill: string, markRatio = ratio.tileMark): string {
   const markHeight = size * markRatio;
   const markWidth = markHeight * ratio.mark;
-  return `<rect x="${round(x)}" y="${round(y)}" width="${round(size)}" height="${round(size)}" rx="${round(size * ratio.tileRadius)}" fill="${fill}"/>${mark(x + (size - markWidth) / 2, y + (size - markHeight) / 2, markHeight, { body: color.bandText, dot: color.accent })}`;
+  return `<rect x="${round(x)}" y="${round(y)}" width="${round(size)}" height="${round(size)}" rx="${round(size * ratio.tileRadius)}" fill="${fill}"/>${mark(x + (size - markWidth) / 2, y + (size - markHeight) / 2, markHeight, { body: color.onPrimary, dot: color.accent })}`;
 }
 
 export function wordmarkAt(x: number, y: number, height: number, fill: string): string {
@@ -74,13 +74,13 @@ export function lockupWidth(tileSize: number): number {
 }
 
 /**
- * Tile lockup: the mark tile next to the two-line wordmark. On the band the tile is cobalt (primary) so it
- * separates from the ground; on white it is the band colour, as in the website header.
+ * Tile lockup: the mark tile next to the two-line wordmark. On white the tile is cobalt; on the cobalt surface it
+ * is the deeper cobalt 800 so it separates from the ground, and the wordmark is white.
  */
-export function lockup(x: number, y: number, tileSize: number, on: 'band' | 'paper'): string {
+export function lockup(x: number, y: number, tileSize: number, on: 'cobalt' | 'paper'): string {
   const wordHeight = tileSize * ratio.lockupWordmark;
-  const tileFill = on === 'band' ? color.primary : color.band;
-  const wordFill = on === 'band' ? color.bandText : color.ink;
+  const tileFill = on === 'cobalt' ? color.surfaceStrip : color.primary;
+  const wordFill = on === 'cobalt' ? color.onSurface : color.ink;
   return `${tile(x, y, tileSize, tileFill)}${wordmarkAt(x + tileSize * (1 + ratio.lockupGap), y + (tileSize - wordHeight) / 2, wordHeight, wordFill)}`;
 }
 
@@ -102,7 +102,7 @@ export type EyebrowOptions = {
 };
 
 /** Mono uppercase eyebrow framed by thin rules (both sides when centred, leading rule when left-aligned). */
-export function eyebrow({ x, top, size, label, align, textFill = color.bandText2, ruleFill = color.bandLineStrong, uppercase = true }: EyebrowOptions): string {
+export function eyebrow({ x, top, size, label, align, textFill = color.onSurface2, ruleFill = color.surfaceRule, uppercase = true }: EyebrowOptions): string {
   const content = uppercase ? label.toLocaleUpperCase('tr-TR') : label;
   const width = measure(content, EYEBROW.font, size, EYEBROW.tracking);
   const baseline = top + baselineInBox(EYEBROW.font, size, EYEBROW.lineHeight);
@@ -138,7 +138,7 @@ export type HeadingOptions = {
 };
 
 /** White Archivo 600 heading that ends in the coral full stop. */
-export function heading({ x, top, size, title, maxWidth, align, fill = color.bandText, stopFill = color.accent, lines }: HeadingOptions): { svg: string; height: number; lines: string[] } {
+export function heading({ x, top, size, title, maxWidth, align, fill = color.onSurface, stopFill = color.accent, lines }: HeadingOptions): { svg: string; height: number; lines: string[] } {
   const rows = lines ?? wrap(title, HEADING.font, size, maxWidth - size * 0.3, HEADING.tracking);
   const lineBox = size * HEADING.lineHeight;
   const base = baselineInBox(HEADING.font, size, HEADING.lineHeight);
@@ -180,7 +180,7 @@ export function buttonWidth(height: number, label: string): number {
 
 export type Fact = { value: string; label: string };
 
-/** Deep strip of facts at the foot of a band surface. Base: 92 px strip, 23 px values, 15 px labels. */
+/** Deeper cobalt strip of facts at the foot of a cobalt surface. Base: 92 px strip, 23 px values, 15 px labels. */
 export function factsStrip(opts: { y: number; width: number; height: number; facts: readonly Fact[]; scale: number; x?: number; align?: 'center' | 'start'; startX?: number; contentHeight?: number }): string {
   const { y, width, height, facts, scale, x = 0, align = 'center', startX, contentHeight = height } = opts;
   const valueSize = 23 * scale;
@@ -199,21 +199,21 @@ export function factsStrip(opts: { y: number; width: number; height: number; fac
   const items = facts.map((fact, index) => {
     const w = widths[index]!;
     const cx = cursor + w / 2;
-    const separator = index === 0 ? '' : `<rect x="${round(cursor - line / 2)}" y="${round(blockTop)}" width="${round(line)}" height="${round(blockHeight)}" fill="${color.bandLine}"/>`;
+    const separator = index === 0 ? '' : `<rect x="${round(cursor - line / 2)}" y="${round(blockTop)}" width="${round(line)}" height="${round(blockHeight)}" fill="${color.stripRule}"/>`;
     const anchor = align === 'center' ? 'middle' : 'start';
     const tx = align === 'center' ? cx : cursor + (index === 0 ? pad : pad);
     cursor += w;
-    return `${separator}${text({ x: tx, y: blockTop + baselineInBox(valueFont, valueSize, 1.2), text: fact.value, font: valueFont, size: valueSize, fill: color.bandText, anchor })}${text({ x: tx, y: blockTop + valueBox + 2 * scale + baselineInBox(labelFont, labelSize, 1.2), text: fact.label, font: labelFont, size: labelSize, fill: color.bandText2, anchor })}`;
+    return `${separator}${text({ x: tx, y: blockTop + baselineInBox(valueFont, valueSize, 1.2), text: fact.value, font: valueFont, size: valueSize, fill: color.onSurface, anchor })}${text({ x: tx, y: blockTop + valueBox + 2 * scale + baselineInBox(labelFont, labelSize, 1.2), text: fact.label, font: labelFont, size: labelSize, fill: color.onSurface2, anchor })}`;
   });
-  return `<rect x="${round(x)}" y="${round(y)}" width="${round(width)}" height="${round(height)}" fill="${color.bandDeep}"/><rect x="${round(x)}" y="${round(y)}" width="${round(width)}" height="${round(line)}" fill="${color.bandLine}"/>${items.join('')}`;
+  return `<rect x="${round(x)}" y="${round(y)}" width="${round(width)}" height="${round(height)}" fill="${color.surfaceStrip}"/><rect x="${round(x)}" y="${round(y)}" width="${round(width)}" height="${round(line)}" fill="${color.stripRule}"/>${items.join('')}`;
 }
 
-// ---- Band backdrop -------------------------------------------------------------------------------------------
+// ---- Cobalt surface backdrop -------------------------------------------------------------------------------------------
 
 export type Glow = { cx: number; cy: number; r: number; opacity?: number };
 export type DotFade = 'sides' | 'left' | 'right' | 'top' | 'bottom' | 'top-left' | 'radial';
 
-export type BandOptions = {
+export type SurfaceOptions = {
   width: number;
   height: number;
   glows?: Glow[];
@@ -221,7 +221,7 @@ export type BandOptions = {
   dots?: { pitch: number; radius: number; fade: DotFade; opacity?: number; area?: { x: number; y: number; width: number; height: number } };
   /** The supergraphic: top-left and height of the mark; stroke in output units. */
   supergraphic?: { x: number; y: number; height: number; stroke: number };
-  /** Vertical gradient band → band-deep (default) or flat band. */
+  /** Vertical gradient cobalt 600 → 700 (default) or flat cobalt. */
   gradient?: boolean;
   /** Extra bleed drawn around the canvas (print). */
   bleed?: number;
@@ -236,8 +236,8 @@ const fadeStops: Record<Exclude<DotFade, 'radial'>, { x1: number; y1: number; x2
   'top-left': { x1: 0, y1: 0, x2: 1, y2: 1, stops: [[0, 1], [0.5, 0]] },
 };
 
-/** Background layers of a band surface: gradient, cobalt glows, faded dot grid and the blueprint supergraphic. */
-export function bandBackdrop(opts: BandOptions): { defs: string; body: string } {
+/** Background layers of a cobalt surface: gradient, white glows, faded dot grid and the blueprint supergraphic. */
+export function cobaltBackdrop(opts: SurfaceOptions): { defs: string; body: string } {
   const { width, height, glows = [], dots, supergraphic, gradient = true, bleed = 0 } = opts;
   const x0 = -bleed;
   const y0 = -bleed;
@@ -246,21 +246,21 @@ export function bandBackdrop(opts: BandOptions): { defs: string; body: string } 
   const defs: string[] = [];
   const body: string[] = [];
   if (gradient) {
-    defs.push(`<linearGradient id="band" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color.band}"/><stop offset="0.55" stop-color="${color.band}"/><stop offset="1" stop-color="${color.bandDeep}"/></linearGradient>`);
-    body.push(`<rect x="${round(x0)}" y="${round(y0)}" width="${round(w)}" height="${round(h)}" fill="url(#band)"/>`);
+    defs.push(`<linearGradient id="surface" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color.surface}"/><stop offset="0.5" stop-color="${color.surface}"/><stop offset="1" stop-color="${color.surfaceDeep}"/></linearGradient>`);
+    body.push(`<rect x="${round(x0)}" y="${round(y0)}" width="${round(w)}" height="${round(h)}" fill="url(#surface)"/>`);
   } else {
-    body.push(`<rect x="${round(x0)}" y="${round(y0)}" width="${round(w)}" height="${round(h)}" fill="${color.band}"/>`);
+    body.push(`<rect x="${round(x0)}" y="${round(y0)}" width="${round(w)}" height="${round(h)}" fill="${color.surface}"/>`);
   }
   if (glows.length) {
-    defs.push(`<radialGradient id="glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="${color.primary}" stop-opacity="0.5"/><stop offset="1" stop-color="${color.primary}" stop-opacity="0"/></radialGradient>`);
+    defs.push(`<radialGradient id="glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="${color.onSurface}" stop-opacity="${tint.glow}"/><stop offset="1" stop-color="${color.onSurface}" stop-opacity="0"/></radialGradient>`);
     for (const g of glows) {
       body.push(`<circle cx="${round(g.cx)}" cy="${round(g.cy)}" r="${round(g.r)}" fill="url(#glow)"${g.opacity === undefined ? '' : ` opacity="${g.opacity}"`}/>`);
     }
   }
   if (dots) {
     const area = dots.area ?? { x: x0, y: y0, width: w, height: h };
-    const peak = dots.opacity ?? 0.7;
-    defs.push(`<pattern id="dots" width="${round(dots.pitch)}" height="${round(dots.pitch)}" patternUnits="userSpaceOnUse" x="${round(area.x)}" y="${round(area.y)}"><circle cx="${round(dots.pitch / 2)}" cy="${round(dots.pitch / 2)}" r="${round(dots.radius)}" fill="${color.bandLineStrong}"/></pattern>`);
+    const peak = dots.opacity ?? tint.dots;
+    defs.push(`<pattern id="dots" width="${round(dots.pitch)}" height="${round(dots.pitch)}" patternUnits="userSpaceOnUse" x="${round(area.x)}" y="${round(area.y)}"><circle cx="${round(dots.pitch / 2)}" cy="${round(dots.pitch / 2)}" r="${round(dots.radius)}" fill="${color.onSurface}"/></pattern>`);
     if (dots.fade === 'radial') {
       defs.push(`<radialGradient id="dots-fade" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="${peak}"/></radialGradient>`);
     } else {
@@ -279,12 +279,12 @@ export function bandBackdrop(opts: BandOptions): { defs: string; body: string } 
 }
 
 /**
- * The blueprint supergraphic: the mark enlarged, its body a band-line → band gradient with a light outline, its dot
- * solid coral. It may bleed off the bottom or the left side; the dot is never cut.
+ * The blueprint supergraphic: the mark enlarged, its body a white gradient fading downwards with a white outline,
+ * both at low opacity, its dot solid coral. It may bleed off the bottom or the left side; the dot is never cut.
  */
 export function supergraphicMark({ x, y, height, stroke }: { x: number; y: number; height: number; stroke: number }): { defs: string; body: string } {
   const k = height / MARK_H;
-  const defs = `<linearGradient id="mark-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color.bandLine}"/><stop offset="0.6" stop-color="${color.band}"/></linearGradient>`;
-  const body = `<g transform="translate(${round(x)} ${round(y)}) scale(${round(k, 6)})"><path fill="url(#mark-fill)" stroke="${color.bandLineStrong}" stroke-width="${round(stroke / k, 3)}" stroke-linejoin="miter" d="${logos.mark.body}"/><path fill="${color.accent}" d="${logos.mark.dot}"/></g>`;
+  const defs = `<linearGradient id="mark-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color.onSurface}" stop-opacity="${tint.fillTop}"/><stop offset="${tint.fillHold}" stop-color="${color.onSurface}" stop-opacity="${tint.fillBottom}"/></linearGradient>`;
+  const body = `<g transform="translate(${round(x)} ${round(y)}) scale(${round(k, 6)})"><path fill="url(#mark-fill)" stroke="${color.onSurface}" stroke-opacity="${tint.outline}" stroke-width="${round(stroke / k, 3)}" stroke-linejoin="miter" d="${logos.mark.body}"/><path fill="${color.accent}" d="${logos.mark.dot}"/></g>`;
   return { defs, body };
 }

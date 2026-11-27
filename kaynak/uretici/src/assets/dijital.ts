@@ -2,7 +2,7 @@ import { rmSync } from 'node:fs';
 import path from 'node:path';
 
 import {
-  bandBackdrop,
+  cobaltBackdrop,
   button,
   buttonWidth,
   eyebrow,
@@ -15,6 +15,7 @@ import {
   mark,
   ratio,
 } from '../brand.ts';
+import { checkLegibility } from '../check.ts';
 import { brand, dir } from '../config.ts';
 import { HEADING } from '../brand.ts';
 import { wrap } from '../fonts.ts';
@@ -22,7 +23,7 @@ import { getBrowser, png, write } from '../render.ts';
 import { round, svgDocument, text } from '../svg.ts';
 import { color, logos } from '../tokens.ts';
 
-// Screen assets on the brand band. Each composition keeps its meaning (logo, eyebrow, heading, button) inside the
+// Screen assets on the cobalt surface. Each composition keeps its meaning (logo, eyebrow, heading, button) inside the
 // part every crop of its platform keeps; the edges carry only the glow, the dot grid and the supergraphic.
 
 type Asset = { name: string; width: number; height: number; title: string; defs: string; body: string };
@@ -54,10 +55,10 @@ function og(): Asset {
   const SAFE = H;
   const contentWidth = SAFE - 40;
   const sgHeight = 440;
-  const back = bandBackdrop({
+  const back = cobaltBackdrop({
     width: W,
     height: H,
-    glows: [{ cx: 120, cy: 110, r: 420 }, { cx: W - 110, cy: 150, r: 380 }],
+    glows: [{ cx: 60, cy: 40, r: 300 }, { cx: W - 60, cy: 100, r: 330 }],
     dots: { pitch: 22, radius: 1.6, fade: 'sides', area: { x: 0, y: 0, width: W, height: H - FOOTER } },
     supergraphic: { x: W - sgHeight * ratio.mark - 12, y: 168, height: sgHeight, stroke: 4 },
   });
@@ -71,7 +72,7 @@ function og(): Asset {
   const btnW = buttonWidth(54, brand.cta);
   const body = [
     back.body,
-    lockup(W / 2 - lockupWidth(52) / 2, 40, 52, 'band'),
+    lockup(W / 2 - lockupWidth(52) / 2, 40, 52, 'cobalt'),
     eyebrow({ x: W / 2, top: eyeTop, size: 17, label: `${brand.name} · ${brand.descriptor}`, align: 'center' }),
     heading({ x: W / 2, top: titleTop, size, title: brand.heroTitle, maxWidth: contentWidth, align: 'center', lines }).svg,
     button(W / 2 - btnW / 2, buttonTop, 54, brand.cta).svg,
@@ -90,10 +91,10 @@ function post(): Asset {
   const s = 1.6;
   const sgHeight = 620;
   const sgWidth = sgHeight * ratio.mark;
-  const back = bandBackdrop({
+  const back = cobaltBackdrop({
     width: W,
     height: H,
-    glows: [{ cx: 140, cy: 120, r: 620 }, { cx: W - 120, cy: 420, r: 560 }],
+    glows: [{ cx: W - 40, cy: 80, r: 440 }],
     dots: { pitch: 30, radius: 2.2, fade: 'top-left', area: { x: 0, y: 0, width: W, height: H - FOOTER } },
     supergraphic: { x: W - sgWidth - 40, y: 372, height: sgHeight, stroke: 6 },
   });
@@ -106,7 +107,7 @@ function post(): Asset {
   ]) as [number, number, number];
   const body = [
     back.body,
-    lockup(M, M, 76, 'band'),
+    lockup(M, M, 76, 'cobalt'),
     eyebrow({ x: M, top: eyeTop, size: 26, label: `${brand.name} · ${brand.descriptor}`, align: 'start' }),
     heading({ x: M, top: titleTop, size, title: brand.heroTitle, maxWidth: 520, align: 'start', lines }).svg,
     button(M, buttonTop, 84, brand.cta).svg,
@@ -126,10 +127,10 @@ function story(): Asset {
   const M = 96;
   const sgHeight = 1000;
   const sgWidth = sgHeight * ratio.mark;
-  const back = bandBackdrop({
+  const back = cobaltBackdrop({
     width: W,
     height: H,
-    glows: [{ cx: 120, cy: 260, r: 760 }, { cx: W - 80, cy: 1080, r: 680 }],
+    glows: [{ cx: W, cy: 120, r: 520 }, { cx: W - 80, cy: 1520, r: 500 }],
     dots: { pitch: 30, radius: 2.2, fade: 'top' },
     supergraphic: { x: W - sgWidth - 24, y: 1150, height: sgHeight, stroke: 7 },
   });
@@ -147,11 +148,11 @@ function story(): Asset {
   const [eyeTop, titleTop, bodyTop, phoneTop, buttonTop] = stack(SAFE_TOP + 50 + 90 + 50, 1205, blocks) as [number, number, number, number, number];
   const body = [
     back.body,
-    lockup(M, SAFE_TOP + 50, 90, 'band'),
+    lockup(M, SAFE_TOP + 50, 90, 'cobalt'),
     eyebrow({ x: M, top: eyeTop, size: 28, label: `Telefon · WhatsApp`, align: 'start' }),
     heading({ x: M, top: titleTop, size, title: lines.join(' '), maxWidth: W - M * 2, align: 'start', lines }).svg,
-    bodyLines.map((line, i) => text({ x: M, y: bodyTop + i * bodySize * 1.4 + bodySize * 1.08, text: line, font: 'Inter/500', size: bodySize, fill: color.bandText2 })).join(''),
-    text({ x: M, y: phoneTop + 48, text: brand.phone, font: 'Archivo/600', size: 60, fill: color.bandText, tracking: -0.01 }),
+    bodyLines.map((line, i) => text({ x: M, y: bodyTop + i * bodySize * 1.4 + bodySize * 1.08, text: line, font: 'Inter/500', size: bodySize, fill: color.onSurface2 })).join(''),
+    text({ x: M, y: phoneTop + 48, text: brand.phone, font: 'Archivo/600', size: 60, fill: color.onSurface, tracking: -0.01 }),
     button(M, buttonTop, 96, brand.cta).svg,
   ].join('');
   return { name: 'hikaye-durum-1080x1920', width: W, height: H, title: 'Han Dijit · hikâye ve WhatsApp durum 1080 × 1920', defs: back.defs, body };
@@ -166,11 +167,11 @@ function linkedin(): Asset {
   const H = 396;
   const X = 560;
   const sgHeight = 340;
-  const back = bandBackdrop({
+  const back = cobaltBackdrop({
     width: W,
     height: H,
-    glows: [{ cx: 220, cy: 80, r: 520 }, { cx: W - 160, cy: 120, r: 420 }],
-    dots: { pitch: 22, radius: 1.6, fade: 'left' },
+    glows: [{ cx: 180, cy: 60, r: 380 }, { cx: W - 60, cy: 60, r: 260 }],
+    dots: { pitch: 22, radius: 1.6, fade: 'left', area: { x: 0, y: 0, width: 1100, height: H } },
     supergraphic: { x: W - sgHeight * ratio.mark - 80, y: 96, height: sgHeight, stroke: 4 },
   });
   const size = 54;
@@ -185,7 +186,7 @@ function linkedin(): Asset {
     back.body,
     eyebrow({ x: X, top: eyeTop, size: 16, label: brand.expertise, align: 'start' }),
     heading({ x: X, top: titleTop, size, title: lines[0]!, maxWidth: 900, align: 'start', lines }).svg,
-    text({ x: X, y: factTop + 16 * 1.08, text: factLine.toLocaleUpperCase('tr-TR'), font: 'IBM Plex Mono/500', size: 15, fill: color.bandText2, tracking: 0.12 }),
+    text({ x: X, y: factTop + 16 * 1.08, text: factLine.toLocaleUpperCase('tr-TR'), font: 'IBM Plex Mono/500', size: 15, fill: color.onSurface2, tracking: 0.12 }),
   ].join('');
   return { name: 'linkedin-kapak-1584x396', width: W, height: H, title: 'Han Dijit · LinkedIn kapak 1584 × 396', defs: back.defs, body };
 }
@@ -197,10 +198,10 @@ function github(): Asset {
   const FOOTER = 96;
   const contentWidth = 600;
   const sgHeight = 450;
-  const back = bandBackdrop({
+  const back = cobaltBackdrop({
     width: W,
     height: H,
-    glows: [{ cx: 130, cy: 110, r: 440 }, { cx: W - 120, cy: 150, r: 400 }],
+    glows: [{ cx: 60, cy: 40, r: 310 }, { cx: W - 60, cy: 100, r: 340 }],
     dots: { pitch: 22, radius: 1.6, fade: 'sides', area: { x: 0, y: 0, width: W, height: H - FOOTER } },
     supergraphic: { x: W - sgHeight * ratio.mark - 20, y: 170, height: sgHeight, stroke: 4 },
   });
@@ -212,7 +213,7 @@ function github(): Asset {
   ]) as [number, number];
   const body = [
     back.body,
-    lockup(W / 2 - lockupWidth(56) / 2, 44, 56, 'band'),
+    lockup(W / 2 - lockupWidth(56) / 2, 44, 56, 'cobalt'),
     eyebrow({ x: W / 2, top: eyeTop, size: 17, label: brand.github, align: 'center', uppercase: false }),
     heading({ x: W / 2, top: titleTop, size, title: brand.heroTitle, maxWidth: contentWidth, align: 'center', lines }).svg,
     factsStrip({ y: H - FOOTER, width: W, height: FOOTER, facts: brand.facts, scale: 1.02 }),
@@ -228,16 +229,16 @@ function meeting(): Asset {
   const W = 1920;
   const H = 1080;
   const sgHeight = 760;
-  const back = bandBackdrop({
+  const back = cobaltBackdrop({
     width: W,
     height: H,
-    glows: [{ cx: 220, cy: 160, r: 760 }, { cx: W - 260, cy: 420, r: 700 }],
-    dots: { pitch: 28, radius: 2, fade: 'sides' },
+    glows: [{ cx: 0, cy: 0, r: 520 }, { cx: W - 200, cy: 300, r: 620 }],
+    dots: { pitch: 28, radius: 2, fade: 'right' },
     supergraphic: { x: W - sgHeight * ratio.mark - 140, y: 420, height: sgHeight, stroke: 6 },
   });
   const body = [
     back.body,
-    lockup(110, 96, 84, 'band'),
+    lockup(110, 96, 84, 'cobalt'),
     eyebrow({ x: 110, top: H - 140, size: 22, label: brand.web, align: 'start', uppercase: false }),
   ].join('');
   return { name: 'toplanti-arka-plani-1920x1080', width: W, height: H, title: 'Han Dijit · toplantı arka planı 1920 × 1080', defs: back.defs, body };
@@ -245,13 +246,13 @@ function meeting(): Asset {
 
 /**
  * Profile image 400×400: every platform crops it to a circle, so the mark stays well inside the inscribed
- * circle (mark height 50%); the full square is the band, as a full-bleed app icon.
+ * circle (mark height 50%); the full square is the cobalt surface, as a full-bleed app icon.
  */
 function profile(): Asset {
   const S = 400;
-  const back = bandBackdrop({ width: S, height: S, glows: [{ cx: S * 0.3, cy: S * 0.2, r: S * 0.75 }] });
+  const back = cobaltBackdrop({ width: S, height: S, glows: [{ cx: S * 0.3, cy: S * 0.2, r: S * 0.75 }] });
   const h = S * 0.5;
-  const body = `${back.body}${mark((S - h * ratio.mark) / 2, (S - h) / 2, h, { body: color.bandText, dot: color.accent })}`;
+  const body = `${back.body}${mark((S - h * ratio.mark) / 2, (S - h) / 2, h, { body: color.onSurface, dot: color.accent })}`;
   return { name: 'profil-gorseli-400x400', width: S, height: S, title: 'Han Dijit · profil görseli 400 × 400', defs: back.defs, body };
 }
 
@@ -265,7 +266,7 @@ function iconSvg(size: number, { fullBleed = false, markRatio = 0.6 } = {}): str
   const scale = (size * markRatio) / height;
   const x = (size - width * scale) / 2;
   const y = (size - height * scale) / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" rx="${round(radius)}" fill="${color.band}"/><g transform="translate(${round(x)} ${round(y)}) scale(${round(scale, 6)})"><path fill="${color.bandText}" d="${body}"/><path fill="${color.accent}" d="${dot}"/></g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" rx="${round(radius)}" fill="${color.primary}"/><g transform="translate(${round(x)} ${round(y)}) scale(${round(scale, 6)})"><path fill="${color.onSurface}" d="${body}"/><path fill="${color.accent}" d="${dot}"/></g></svg>`;
 }
 
 /** ICO container with PNG entries (every current browser reads PNG-in-ICO). */
@@ -314,7 +315,7 @@ async function favicons(): Promise<void> {
         start_url: '/',
         display: 'standalone',
         background_color: color.paper,
-        theme_color: color.band,
+        theme_color: color.primary,
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -332,7 +333,7 @@ async function favicons(): Promise<void> {
       '<link rel="icon" href="/favicon.svg" type="image/svg+xml">',
       '<link rel="apple-touch-icon" href="/apple-touch-icon.png">',
       '<link rel="manifest" href="/site.webmanifest">',
-      `<meta name="theme-color" content="${color.band}">`,
+      `<meta name="theme-color" content="${color.primary}">`,
       '',
     ].join('\n'),
   );
@@ -340,7 +341,7 @@ async function favicons(): Promise<void> {
 
 export const digitalAssets = [og, linkedin, post, story, profile, github, meeting];
 
-// Files of guide 3.0 that the band set replaces (black variants, the 4:5 post, the two flat profile images).
+// Files of guide 3.0 that the cobalt set replaces (black variants, the 4:5 post, the two flat profile images).
 const RETIRED = [
   'hikaye-durum-1080x1920-siyah',
   'sosyal-gonderi-1080x1350',
@@ -356,6 +357,8 @@ export async function buildDigital(): Promise<DigitalAsset[]> {
   for (const build of digitalAssets) {
     const asset = build();
     const svg = await svgDocument({ width: asset.width, height: asset.height, title: asset.title, defs: asset.defs, body: asset.body });
+    const { worst, text: worstText } = checkLegibility(asset.name, svg, asset.width);
+    console.info(`  ${asset.name}: lowest small-text contrast ${worst.toFixed(2)}:1 (${worstText})`);
     write(path.join(dir.digital, 'svg', `${asset.name}.svg`), svg);
     write(path.join(dir.digital, 'png', `${asset.name}.png`), png(svg));
     assets.push({ name: asset.name, width: asset.width, height: asset.height, svg });

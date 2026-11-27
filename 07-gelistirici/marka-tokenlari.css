@@ -2,29 +2,68 @@
  * Han Dijit brand tokens · corporate identity 4.0
  *
  * Generated, do not edit: run `npm run uret` in kaynak/uretici.
- * Source of truth: @handijitcom/ui/design (themes.light, fonts). The website uses the same values under the
- * same --hd-* names; the band tokens are identical in the light and the dark theme.
- * Turquoise is not part of the brand. Gradients and opacity belong only inside band imagery.
+ * Source of truth: @handijitcom/ui/design (themes.light, scales, fonts); the website uses the same role names.
+ * The palette is cobalt, coral and ink with ink's neutral steps. No navy, no turquoise, no other hue.
+ * Gradients and opacity belong only inside cobalt-surface imagery (glow, dot grid, supergraphic).
  */
 :root {
-  --hd-primary:          #2661fa; /* cobalt: everyday action, link, logo tile */
-  --hd-primary-hover:    #053dea;
-  --hd-on-primary:       #ffffff;
-  --hd-accent:           #fb6041; /* coral: the dot and the one conversion button */
-  --hd-accent-hover:     #f99884;
-  --hd-on-accent:        #091122;
-  --hd-band-bg:          #091b64; /* band: navy ground */
-  --hd-band-deep:        #060f3e; /* band: deep strip, end of the gradient */
-  --hd-band-line:        #213b86; /* band: hairline, top of the supergraphic fill */
-  --hd-band-line-strong: #5b7cce; /* band: supergraphic outline, dot grid, eyebrow rules */
-  --hd-band-text:        #ffffff; /* band: headings and text */
-  --hd-band-text-2:      #bfd2f3; /* band: secondary text, eyebrow */
-  --hd-text:             #091122; /* white surfaces: ink */
-  --hd-text-2:           #515b6e;
-  --hd-text-3:           #677083;
-  --hd-bg-page:          #fafbfe; /* white surfaces: page */
-  --hd-bg-surface:       #ffffff; /* white surfaces: card, paper */
-  --hd-border:           #dee3ed;
+  --hd-primary:        #2661fa; /* cobalt 600: everyday action, link, logo tile, cobalt surface */
+  --hd-primary-hover:  #053dea; /* cobalt 700: end of the surface gradient */
+  --hd-primary-active: #0631b2; /* cobalt 800: facts strip, tile on the cobalt surface */
+  --hd-on-primary:     #ffffff; /* text on cobalt */
+  --hd-primary-soft:   #f4f7fd;
+  --hd-primary-text:   #053dea;
+  --hd-accent:         #fb6041; /* coral: the dot, the full stop and the one conversion button */
+  --hd-accent-hover:   #f99884;
+  --hd-on-accent:      #091122; /* ink on coral */
+  --hd-text:           #091122; /* ink */
+  --hd-text-2:         #515b6e;
+  --hd-text-3:         #677083;
+  --hd-bg-page:        #fafbfe;
+  --hd-bg-surface:     #ffffff; /* paper */
+  --hd-border:         #dee3ed;
+
+  /* Cobalt surface: secondary text and rules (cobalt 50: 5.03:1 on cobalt 600) */
+  --hd-surface-text-2: #ffffff;
+  --hd-surface-rule: #adc6f7;
+  --hd-surface-gradient: linear-gradient(180deg, var(--hd-primary) 0%, var(--hd-primary) 50%, var(--hd-primary-hover) 100%);
+
+  /* Scales */
+  --hd-cobalt-50: #f4f7fd;
+  --hd-cobalt-100: #e6edfb;
+  --hd-cobalt-200: #cfddf9;
+  --hd-cobalt-300: #adc6f7;
+  --hd-cobalt-400: #82a8f7;
+  --hd-cobalt-500: #5487fa;
+  --hd-cobalt-600: #2661fa;
+  --hd-cobalt-700: #053dea;
+  --hd-cobalt-800: #0631b2;
+  --hd-cobalt-900: #05247e;
+  --hd-cobalt-950: #031650;
+  --hd-coral-50: #fdf5f2;
+  --hd-coral-100: #fbe8e3;
+  --hd-coral-200: #fad7cf;
+  --hd-coral-300: #f9bdb0;
+  --hd-coral-400: #f99884;
+  --hd-coral-500: #fb6041;
+  --hd-coral-600: #e03611;
+  --hd-coral-700: #b72e11;
+  --hd-coral-800: #87230f;
+  --hd-coral-900: #5d190c;
+  --hd-coral-950: #380e06;
+  --hd-ink-0: #ffffff;
+  --hd-ink-25: #fafbfe;
+  --hd-ink-50: #f4f6fb;
+  --hd-ink-100: #ecf0f6;
+  --hd-ink-200: #dee3ed;
+  --hd-ink-300: #cbd1de;
+  --hd-ink-400: #a1a9ba;
+  --hd-ink-500: #677083;
+  --hd-ink-600: #515b6e;
+  --hd-ink-700: #3f495d;
+  --hd-ink-800: #263044;
+  --hd-ink-900: #141e31;
+  --hd-ink-950: #091122;
 
   --hd-font-display: Archivo, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --hd-font-body: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -35,7 +74,4 @@
   --hd-tracking-eyebrow: 0.153em;
   --hd-tracking-heading: -0.03em;
   --hd-phi: 1.618034;
-
-  /* Band ground: navy into the deep strip */
-  --hd-band-gradient: linear-gradient(180deg, var(--hd-band-bg) 0%, var(--hd-band-bg) 55%, var(--hd-band-deep) 100%);
 }

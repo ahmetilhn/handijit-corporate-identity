@@ -3,7 +3,8 @@ import path from 'node:path';
 
 import JSZip from 'jszip';
 
-import { bandBackdrop, lockup, lockupWidth, mark } from '../brand.ts';
+import { cobaltBackdrop, lockup, lockupWidth, mark } from '../brand.ts';
+import { checkLegibility } from '../check.ts';
 import { brand, dir } from '../config.ts';
 import { baselineInBox } from '../fonts.ts';
 import { png, write } from '../render.ts';
@@ -12,10 +13,10 @@ import { color } from '../tokens.ts';
 import { qrPath } from './basili.ts';
 
 // The PowerPoint template (05-ofis/sunum-sablonu-16x9.pptx) keeps its master and its four HD_ layouts; this step
-// rewrites the three band layouts (cover, section divider, closing) and the colours of the sample slides that use
-// them. The content layout and its slides stay white. The band itself is a background picture (gradient, glow,
+// rewrites the three cobalt layouts (cover, section divider, closing) and the colours of the sample slides that use
+// them. The content layout and its slides stay white. The cobalt surface is a background picture (gradient, glow,
 // dot grid and supergraphic cannot be built from PowerPoint shapes faithfully); every text stays editable.
-// Rerunning is safe: the band layouts are written whole and the slide patches only touch what is not done yet.
+// Rerunning is safe: the cobalt layouts are written whole and the slide patches only touch what is not done yet.
 
 const FILE = path.join(dir.office, 'sunum-sablonu-16x9.pptx');
 const SLIDE_W = 9144000;
@@ -23,8 +24,8 @@ const PX = 1920 / SLIDE_W; // background picture pixels per EMU
 const ZIP_DATE = new Date('2026-11-27T09:00:00+03:00');
 
 const hex = (value: string) => value.replace('#', '').toUpperCase();
-const WHITE = hex(color.bandText);
-const SOFT = hex(color.bandText2);
+const WHITE = hex(color.onSurface);
+const SOFT = hex(color.onSurface2);
 const CORAL = hex(color.accent);
 
 const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
@@ -83,11 +84,11 @@ async function background(kind: 'kapak' | 'kapanis'): Promise<string> {
   const W = 1920;
   const H = 1080;
   const sg = kind === 'kapanis' ? undefined : { x: 1302, y: 394, height: 845, stroke: 6 };
-  const back = bandBackdrop({
+  const back = cobaltBackdrop({
     width: W,
     height: H,
-    glows: kind === 'kapanis' ? [{ cx: 200, cy: 150, r: 760 }, { cx: W - 260, cy: H - 200, r: 700 }] : [{ cx: 200, cy: 150, r: 760 }, { cx: W - 220, cy: 300, r: 680 }],
-    dots: { pitch: 28, radius: 2, fade: kind === 'kapanis' ? 'sides' : 'left' },
+    glows: kind === 'kapanis' ? [{ cx: 0, cy: 0, r: 420 }, { cx: W, cy: 0, r: 560 }] : [{ cx: 0, cy: 0, r: 420 }, { cx: W - 220, cy: 160, r: 560 }],
+    dots: kind === 'kapanis' ? { pitch: 28, radius: 2, fade: 'top', area: { x: 0, y: 0, width: W, height: 440 } } : { pitch: 28, radius: 2, fade: 'right' },
     supergraphic: sg,
   });
   return svgDocument({ width: W, height: H, title: `Sunum arka planı · ${kind}`, defs: back.defs, body: back.body, embedFonts: false });
@@ -95,7 +96,7 @@ async function background(kind: 'kapak' | 'kapanis'): Promise<string> {
 
 /** A display heading with the coral full stop, as a transparent picture (fonts may be missing on the viewer's PC). */
 async function headingPicture(value: string, width: number, height: number, size: number, baseline: number, inset: number): Promise<string> {
-  return svgDocument({ width, height, title: value, body: text({ x: inset, y: baseline, text: value, font: 'Archivo/600', size, fill: color.bandText, tracking: -0.03, stop: color.accent }) });
+  return svgDocument({ width, height, title: value, body: text({ x: inset, y: baseline, text: value, font: 'Archivo/600', size, fill: color.onSurface, tracking: -0.03, stop: color.accent }) });
 }
 
 async function qrCard(size: number): Promise<string> {
@@ -118,7 +119,7 @@ const coverHeadingBox: Box = { x: 384048, y: 1143000, cx: 3839547, cy: 1143000 }
 const closingHeadingBox: Box = { x: 411480, y: 1097280, cx: 4833584, cy: 868680 };
 const qrBox: Box = { x: 7086600, y: 2743200, cx: 1600200, cy: 1600200 };
 const markBox: Box = { x: 457200, y: 411480, cx: 254309, cy: 411480 };
-/** Text column of the band layouts: clear of the supergraphic (which starts at 6.78 in). */
+/** Text column of the cobalt layouts: clear of the supergraphic (which starts at 6.78 in). */
 const TEXT_WIDTH = 5486400;
 
 function coverLayout(): string {
@@ -155,11 +156,13 @@ function closingLayout(): string {
 
 // ---- Sample slides -----------------------------------------------------------------------------------------------
 
-/** Re-colours the runs a slide sets explicitly, for the band behind it. */
+/** Re-colours the runs a slide sets explicitly, for the cobalt behind it. */
 function recolour(xml: string): string {
+  // Any colour but coral: the template's scheme colours on the first run, an earlier palette on later runs.
+  const fill = '<a:solidFill>(?:<a:schemeClr val="(?:tx1|bg1)"\\/>|<a:srgbClr val="(?!' + CORAL + ')[0-9A-F]{6}"\\/>)<\\/a:solidFill>';
   return xml
-    .replace(/<a:solidFill><a:schemeClr val="(tx1|bg1)"\/><\/a:solidFill>(<a:latin typeface="IBM Plex Mono Medium")/g, `<a:solidFill><a:srgbClr val="${SOFT}"/></a:solidFill>$2`)
-    .replace(/<a:solidFill><a:schemeClr val="(tx1|bg1)"\/><\/a:solidFill>(<a:latin typeface="Archivo SemiBold")/g, `<a:solidFill><a:srgbClr val="${WHITE}"/></a:solidFill>$2`)
+    .replace(new RegExp(`${fill}(<a:latin typeface="IBM Plex Mono Medium")`, 'g'), `<a:solidFill><a:srgbClr val="${SOFT}"/></a:solidFill>$1`)
+    .replace(new RegExp(`${fill}(<a:latin typeface="Archivo SemiBold")`, 'g'), `<a:solidFill><a:srgbClr val="${WHITE}"/></a:solidFill>$1`)
     .replace(/<a:ext cx="(5120640|7772400)"/g, `<a:ext cx="${TEXT_WIDTH}"`);
 }
 
@@ -188,7 +191,9 @@ async function preview(bg: string, pictures: { image: Buffer; box: Box }[], over
     const x = o.anchor === 'end' ? (o.box.x + o.box.cx) * PX : o.box.x * PX;
     return text({ x, y, text: o.value, font: o.font, size, fill: o.fill, tracking: (o.spacing ?? 0) / 100 / o.pt, anchor: o.anchor ?? 'start', stop: o.stop ? color.accent : undefined });
   });
-  return svgDocument({ width: 1920, height: 1080, title: 'Slayt önizlemesi', body: `${inner}${pics.join('')}${texts.join('')}` });
+  const svg = await svgDocument({ width: 1920, height: 1080, title: 'Slayt önizlemesi', body: `${inner}${pics.join('')}${texts.join('')}` });
+  checkLegibility('sunum', svg, 1920, 960);
+  return svg;
 }
 
 export type SlidePreviews = Record<'cover' | 'section' | 'closing', string>;
@@ -199,15 +204,15 @@ export async function buildSlides(): Promise<SlidePreviews> {
 
   const bgCover = await background('kapak');
   const bgClosing = await background('kapanis');
-  const lockupSvg = await svgDocument({ width: lockupWidth(1000), height: 1000, title: 'Han Dijit', body: lockup(0, 0, 1000, 'band'), embedFonts: false });
+  const lockupSvg = await svgDocument({ width: lockupWidth(1000), height: 1000, title: 'Han Dijit', body: lockup(0, 0, 1000, 'cobalt'), embedFonts: false });
   const coverHeading = await headingPicture('Sunum', 2400, 714, 600, 560, 34);
   const closingHeading = await headingPicture('Teşekkürler', 2400, 431, 352, 330, 16);
-  const markSvg = await svgDocument({ width: 600, height: 971, title: 'Han Dijit işareti', body: mark(0, 0, 971, { body: color.bandText, dot: color.accent }), embedFonts: false });
+  const markSvg = await svgDocument({ width: 600, height: 971, title: 'Han Dijit işareti', body: mark(0, 0, 971, { body: color.onSurface, dot: color.accent }), embedFonts: false });
   const qr = await qrCard(900);
 
   const media: Record<string, Buffer> = {
-    'hd-bant-kapak.png': png(bgCover),
-    'hd-bant-kapanis.png': png(bgClosing),
+    'hd-kobalt-kapak.png': png(bgCover),
+    'hd-kobalt-kapanis.png': png(bgClosing),
     'hd-karo-logo.png': png(lockupSvg, 1200),
     'hd-baslik-sunum.png': png(coverHeading),
     'hd-baslik-tesekkurler.png': png(closingHeading),
@@ -215,18 +220,18 @@ export async function buildSlides(): Promise<SlidePreviews> {
     'hd-karekod.png': png(qr),
   };
   for (const [name, data] of Object.entries(media)) put(`ppt/media/${name}`, data);
-  for (const old of ['hd-bant-bolum.png', 'image-1002-1.png', 'image-1002-2.png', 'image-1002-3.png', 'image-1003-1.png', 'image-1005-1.png', 'image-1005-2.png']) {
+  for (const old of ['hd-bant-kapak.png', 'hd-bant-kapanis.png', 'hd-bant-bolum.png', 'image-1002-1.png', 'image-1002-2.png', 'image-1002-3.png', 'image-1003-1.png', 'image-1005-1.png', 'image-1005-2.png']) {
     zip.remove(`ppt/media/${old}`);
   }
 
   put('ppt/slideLayouts/slideLayout2.xml', coverLayout());
-  put('ppt/slideLayouts/_rels/slideLayout2.xml.rels', rels({ rIdBg: 'hd-bant-kapak.png', rId1: 'hd-karo-logo.png', rId2: 'hd-baslik-sunum.png' }));
+  put('ppt/slideLayouts/_rels/slideLayout2.xml.rels', rels({ rIdBg: 'hd-kobalt-kapak.png', rId1: 'hd-karo-logo.png', rId2: 'hd-baslik-sunum.png' }));
   put('ppt/slideLayouts/slideLayout3.xml', sectionLayout());
-  put('ppt/slideLayouts/_rels/slideLayout3.xml.rels', rels({ rIdBg: 'hd-bant-kapak.png', rId1: 'hd-isaret-negatif.png' }));
+  put('ppt/slideLayouts/_rels/slideLayout3.xml.rels', rels({ rIdBg: 'hd-kobalt-kapak.png', rId1: 'hd-isaret-negatif.png' }));
   put('ppt/slideLayouts/slideLayout5.xml', closingLayout());
-  put('ppt/slideLayouts/_rels/slideLayout5.xml.rels', rels({ rIdBg: 'hd-bant-kapanis.png', rId1: 'hd-baslik-tesekkurler.png', rId2: 'hd-karekod.png' }));
+  put('ppt/slideLayouts/_rels/slideLayout5.xml.rels', rels({ rIdBg: 'hd-kobalt-kapanis.png', rId1: 'hd-baslik-tesekkurler.png', rId2: 'hd-karekod.png' }));
 
-  // Sample slides on the band layouts: their runs carry explicit colours.
+  // Sample slides on the cobalt layouts: their runs carry explicit colours.
   for (let n = 1; n <= 11; n += 1) {
     const relsXml = await zip.file(`ppt/slides/_rels/slide${n}.xml.rels`)!.async('string');
     const layoutNo = /slideLayout(\d+)\.xml/.exec(relsXml)?.[1];
@@ -243,21 +248,21 @@ export async function buildSlides(): Promise<SlidePreviews> {
   // Previews of slides 1, 2 and 11 with the template's sample text.
   const lockupPic = { image: media['hd-karo-logo.png']!, box: lockupBox };
   const cover = await preview(bgCover, [lockupPic, { image: media['hd-baslik-sunum.png']!, box: coverHeadingBox }], [
-    { box: { x: 457200, y: 3063240, cx: TEXT_WIDTH, cy: 868680 }, value: 'Giyim e-ticaret sitesi ve mobil uygulama', font: 'Archivo/600', pt: 22, fill: color.bandText },
-    { box: { x: 457200, y: 4023360, cx: TEXT_WIDTH, cy: 457200 }, value: 'ÖRNEK TEKSTİL A.Ş. · 1 KASIM 2026', font: 'IBM Plex Mono/500', pt: 11, fill: color.bandText2, spacing: 150 },
-    { box: { x: 457200, y: 4645152, cx: 2743200, cy: 228600 }, value: brand.web, font: 'IBM Plex Mono/500', pt: 10, fill: color.bandText2, spacing: 150 },
+    { box: { x: 457200, y: 3063240, cx: TEXT_WIDTH, cy: 868680 }, value: 'Giyim e-ticaret sitesi ve mobil uygulama', font: 'Archivo/600', pt: 22, fill: color.onSurface },
+    { box: { x: 457200, y: 4023360, cx: TEXT_WIDTH, cy: 457200 }, value: 'ÖRNEK TEKSTİL A.Ş. · 1 KASIM 2026', font: 'IBM Plex Mono/500', pt: 11, fill: color.onSurface2, spacing: 150 },
+    { box: { x: 457200, y: 4645152, cx: 2743200, cy: 228600 }, value: brand.web, font: 'IBM Plex Mono/500', pt: 10, fill: color.onSurface2, spacing: 150 },
   ]);
   const section = await preview(bgCover, [{ image: media['hd-isaret-negatif.png']!, box: markBox }], [
-    { box: { x: 457200, y: 2240280, cx: 2743200, cy: 320040 }, value: '01', font: 'IBM Plex Mono/500', pt: 12, fill: color.bandText2, spacing: 150 },
-    { box: { x: 457200, y: 2606040, cx: TEXT_WIDTH, cy: 1188720 }, value: 'Biz kimiz', font: 'Archivo/600', pt: 40, fill: color.bandText, stop: true },
-    { box: { x: 457200, y: 4645152, cx: 2743200, cy: 228600 }, value: brand.web, font: 'IBM Plex Mono/500', pt: 10, fill: color.bandText2, spacing: 150 },
+    { box: { x: 457200, y: 2240280, cx: 2743200, cy: 320040 }, value: '01', font: 'IBM Plex Mono/500', pt: 12, fill: color.onSurface2, spacing: 150 },
+    { box: { x: 457200, y: 2606040, cx: TEXT_WIDTH, cy: 1188720 }, value: 'Biz kimiz', font: 'Archivo/600', pt: 40, fill: color.onSurface, stop: true },
+    { box: { x: 457200, y: 4645152, cx: 2743200, cy: 228600 }, value: brand.web, font: 'IBM Plex Mono/500', pt: 10, fill: color.onSurface2, spacing: 150 },
   ]);
   const closing = await preview(bgClosing, [{ image: media['hd-baslik-tesekkurler.png']!, box: closingHeadingBox }, { image: media['hd-karekod.png']!, box: qrBox }], [
-    { box: { x: 457200, y: 2834640, cx: 3657600, cy: 228600 }, value: 'TELEFON · WHATSAPP', font: 'IBM Plex Mono/500', pt: 10, fill: color.bandText2, spacing: 150 },
-    { box: { x: 457200, y: 3090672, cx: 4572000, cy: 457200 }, value: brand.phone, font: 'Archivo/600', pt: 24, fill: color.bandText },
-    { box: { x: 457200, y: 3749040, cx: 3657600, cy: 228600 }, value: 'WEB', font: 'IBM Plex Mono/500', pt: 10, fill: color.bandText2, spacing: 150 },
-    { box: { x: 457200, y: 4005072, cx: 4572000, cy: 411480 }, value: brand.web, font: 'Archivo/600', pt: 20, fill: color.bandText },
-    { box: { x: 7086600, y: 4434840, cx: 1600200, cy: 228600 }, value: 'WHATSAPP', font: 'IBM Plex Mono/500', pt: 10, fill: color.bandText2, spacing: 150, anchor: 'end' },
+    { box: { x: 457200, y: 2834640, cx: 3657600, cy: 228600 }, value: 'TELEFON · WHATSAPP', font: 'IBM Plex Mono/500', pt: 10, fill: color.onSurface2, spacing: 150 },
+    { box: { x: 457200, y: 3090672, cx: 4572000, cy: 457200 }, value: brand.phone, font: 'Archivo/600', pt: 24, fill: color.onSurface },
+    { box: { x: 457200, y: 3749040, cx: 3657600, cy: 228600 }, value: 'WEB', font: 'IBM Plex Mono/500', pt: 10, fill: color.onSurface2, spacing: 150 },
+    { box: { x: 457200, y: 4005072, cx: 4572000, cy: 411480 }, value: brand.web, font: 'Archivo/600', pt: 20, fill: color.onSurface },
+    { box: { x: 7086600, y: 4434840, cx: 1600200, cy: 228600 }, value: 'WHATSAPP', font: 'IBM Plex Mono/500', pt: 10, fill: color.onSurface2, spacing: 150, anchor: 'end' },
   ]);
   return { cover, section, closing };
 }

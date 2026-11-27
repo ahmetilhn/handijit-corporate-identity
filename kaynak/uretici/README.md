@@ -16,8 +16,8 @@ Node 24 veya üstü gerekir (TypeScript doğrudan Node ile çalışır). PDF'ler
 
 | Klasör | Dosyalar |
 | --- | --- |
-| `01-logo` | Renkli ve negatif işaret, yatay ve dikey logo, karo logo (svg, png, pdf); bant uygulama ikonu. Siyah ve beyaz ana dosyalara dokunmaz. |
-| `04-basili` | Kartvizit (ön beyaz, arka bant), antetli kâğıt, sticker: baskı PDF'leri ve `kaynak/` altında düzenlenebilir SVG'ler. Kartvizitteki karekod her çalıştırmada okutularak doğrulanır. |
+| `01-logo` | Renkli ve negatif işaret, yatay ve dikey logo, karo logo (svg, png, pdf); kobalt uygulama ikonu. Siyah ve beyaz ana dosyalara dokunmaz. |
+| `04-basili` | Kartvizit (ön beyaz, arka kobalt), antetli kâğıt, sticker: baskı PDF'leri ve `kaynak/` altında düzenlenebilir SVG'ler. Kartvizitteki karekod her çalıştırmada okutularak doğrulanır. |
 | `05-ofis` | Sunum şablonunun kapak, bölüm ayracı ve kapanış düzenleri ile bu düzenlerdeki örnek slaytlar. Word antetli, teklif oluşturucu ve örnek teklif bilinçli olarak siyah-beyaz kalır ve üretilmez. |
 | `06-dijital` | OG, LinkedIn kapak, gönderi, hikâye, profil, GitHub, toplantı arka planı (svg, png) ve favicon seti. |
 | `07-gelistirici` | `marka-tokenlari.css` |
@@ -29,10 +29,12 @@ Node 24 veya üstü gerekir (TypeScript doğrudan Node ile çalışır). PDF'ler
 
 - Renk ya da logo: `@handijitcom/ui` sürümünü yükseltip `npm run uret`.
 - Metinler (telefon, başlıklar, bilgi şeridi, kurucu adı): `src/config.ts`.
-- Yerleşim: her dosya grubunun kendi modülü var (`src/assets/*.ts`); ortak parçalar (karo, eyebrow, başlık, düğme, bant, süper grafik) `src/brand.ts` içinde.
+- Yerleşim: her dosya grubunun kendi modülü var (`src/assets/*.ts`); ortak parçalar (karo, eyebrow, başlık, düğme, kobalt yüzey, süper grafik) `src/brand.ts` içinde.
 - Dikey logo, sade işaret ve iki satırlık yazı çizimi paket henüz taşımadığı için `src/geometry.ts` içinde, web sitesinin `src/constants` dosyalarından kopyadır; orada değişirse burada da güncelleyin.
 
 ## Notlar
+
+- Kobalt yüzeyde küçük metin beyaz ya da cobalt 50'dir ve 4,5 : 1'in az üstündedir. `src/check.ts` her görselde metnin altındaki en açık pikseli ölçer; parıltı ya da nokta ızgarası küçük metnin altına kayarsa üretim hata verir.
 
 - PDF'ler RGB'dir. Matbaa CMYK'ya çevirip prova göndermelidir (kılavuz, bölüm 12).
 - SVG'lerde metin canlıdır ve kullanılan karakterlerin font alt kümeleri gömülüdür; tasarım programında düzenlemek için `02-font` fontlarını yükleyin.
